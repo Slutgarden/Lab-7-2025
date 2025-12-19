@@ -30,9 +30,7 @@ public class TabulatedFunctions {
         return factory.createTabulatedFunction(leftX, rightX, values);
     }
 
-    public static void outputTabulatedFunction(
-            TabulatedFunction function,
-            OutputStream out) throws IOException {
+    public static void outputTabulatedFunction(TabulatedFunction function, OutputStream out) throws IOException {
 
         DataOutputStream dataOut = new DataOutputStream(out);
 
@@ -45,8 +43,7 @@ public class TabulatedFunctions {
         dataOut.flush();
     }
 
-    public static TabulatedFunction inputTabulatedFunction(
-            InputStream in) throws IOException {
+    public static TabulatedFunction inputTabulatedFunction(InputStream in) throws IOException {
 
         DataInputStream dataIn = new DataInputStream(in);
 
@@ -63,6 +60,24 @@ public class TabulatedFunctions {
         }
 
         return createTabulatedFunction(points);
+    }
+    public static TabulatedFunction inputTabulatedFunction(Class<? extends TabulatedFunction> clazz, InputStream in) throws IOException {
+
+        DataInputStream dataIn = new DataInputStream(in);
+
+        int count = dataIn.readInt();
+        if (count < 2) {
+            throw new IllegalArgumentException("количество точек должно быть не меньше двух");
+        }
+
+        FunctionPoint[] points = new FunctionPoint[count];
+        for (int i = 0; i < count; i++) {
+            double x = dataIn.readDouble();
+            double y = dataIn.readDouble();
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        return createTabulatedFunction(clazz, points);
     }
 
     public static void writeTabulatedFunction(TabulatedFunction function, Writer out) throws IOException {
@@ -101,11 +116,31 @@ public class TabulatedFunctions {
 
         return createTabulatedFunction(points);
     }
+    public static TabulatedFunction readTabulatedFunction(Class<? extends TabulatedFunction> clazz, Reader in) throws IOException {
+
+        StreamTokenizer tokenizer = new StreamTokenizer(in);
+
+        tokenizer.nextToken();
+        int count = (int) tokenizer.nval;
+        if (count < 2) {
+            throw new IllegalArgumentException("количество точек должно быть не меньше двух");
+        }
+
+        FunctionPoint[] points = new FunctionPoint[count];
+        for (int i = 0; i < count; i++) {
+            tokenizer.nextToken();
+            double x = tokenizer.nval;
+            tokenizer.nextToken();
+            double y = tokenizer.nval;
+            points[i] = new FunctionPoint(x, y);
+        }
+
+        return createTabulatedFunction(clazz, points);
+    }
 
     public static TabulatedFunction tabulate(Function function, double leftX, double rightX, int pointsCount) {
 
-        if (leftX < function.getLeftDomainBorder()
-                || rightX > function.getRightDomainBorder()) {
+        if (leftX < function.getLeftDomainBorder() || rightX > function.getRightDomainBorder()) {
             throw new IllegalArgumentException("границы выходят за область определения функции");
         }
 
